@@ -1,13 +1,13 @@
-package com.pyounani.MockMailServer;
+package com.pyounani.mockmail;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MockMailServerApplication {
+public class MockmailApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MockMailServerApplication.class, args);
+		SpringApplication.run(MockmailApplication.class, args);
 	}
 
 }
