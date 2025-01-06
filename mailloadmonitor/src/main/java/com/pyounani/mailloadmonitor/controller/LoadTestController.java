@@ -1,9 +1,9 @@
 package com.pyounani.mailloadmonitor.controller;
 
-import com.pyounani.mailloadmonitor.domain.LoadTestExecutionResult;
-import com.pyounani.mailloadmonitor.domain.LoadTestSession;
-import com.pyounani.mailloadmonitor.repository.LoadTestExecutionResultRepository;
-import com.pyounani.mailloadmonitor.repository.LoadTestSessionRepository;
+import com.pyounani.mailloadmonitor.domain.LoadTestResult;
+import com.pyounani.mailloadmonitor.domain.LoadTest;
+import com.pyounani.mailloadmonitor.repository.LoadTestResultRepository;
+import com.pyounani.mailloadmonitor.repository.LoadTestRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
@@ -23,8 +23,8 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 public class LoadTestController {
 
-    private final LoadTestExecutionResultRepository loadTestExecutionResultRepository;
-    private final LoadTestSessionRepository loadTestSessionRepository;
+    private final LoadTestResultRepository loadTestResultRepository;
+    private final LoadTestRepository loadTestRepository;
     private final TaskExecutor taskExecutor;
 
     /**
@@ -34,14 +34,14 @@ public class LoadTestController {
      * @param loop          반복수
      * @param description   테스트 설명
      */
-    @PostMapping("/load-test/generate")
+    @PostMapping("/generate/load-test")
     public void generateLoad(@RequestParam int vUsers,
                              @RequestParam long interval,
                              @RequestParam int loop,
                              @RequestParam String description) {
 
         // 부하 테스트 세션에 대한 정보 저장
-        LoadTestSession loadTestSession = loadTestSessionRepository.save(LoadTestSession.builder()
+        LoadTest loadTest = loadTestRepository.save(LoadTest.builder()
                 .testParams(String.format("vUsers=%d, interval=%d, loop=%d", vUsers, interval, loop))
                 .startTime(LocalDateTime.now())
                 .description(description)
@@ -49,26 +49,26 @@ public class LoadTestController {
 
         // 실제 부하 발생
         for (int loopIdx = 0; loopIdx < loop; loopIdx++) {
-            generateVUsersLoadAsync(vUsers, loadTestSession, loopIdx);
+            generateVUsersLoadAsync(vUsers, loadTest, loopIdx);
             sleep(interval);
         }
     }
 
-    private CompletableFuture<Void> generateVUsersLoadAsync(int vUsers, LoadTestSession loadTestSession, int loopIdx) {
+    private CompletableFuture<Void> generateVUsersLoadAsync(int vUsers, LoadTest loadTest, int loopIdx) {
         List<CompletableFuture<Void>> asyncTasks = new ArrayList<>();
 
         for (int i = 0; i < vUsers; i++) {
             CompletableFuture<Void> task = CompletableFuture.runAsync(() -> {
-                LoadTestExecutionResult loadTestExecutionResult = loadTestExecutionResultRepository.save(
-                        loadTestExecutionResultRepository.save(LoadTestExecutionResult.builder()
-                                .loadTestSession(loadTestSession)
+                LoadTestResult loadTestResult = loadTestResultRepository.save(
+                        loadTestResultRepository.save(LoadTestResult.builder()
+                                .loadTest(loadTest)
                                 .loopIdx(loopIdx)
-                                .requestTime(LocalDateTime.now())
+                                .requestTime(LocalDateTime.now()) // 요청 시간 저장
                                 .build())
                 );
 
-                // 이메일 발송
-//                sendMail(loadTestExecutionResult.getId());
+                // 인증코드 요청 API
+                requestVerificationCode(loadTestResult.getId().toString() + "@example.com");
 
             }, taskExecutor);
 
@@ -78,18 +78,19 @@ public class LoadTestController {
         return CompletableFuture.allOf(asyncTasks.toArray(new CompletableFuture[0]));
     }
 
-    private void sendMail(Long loadTestExecutionResultId) {
+    private void requestVerificationCode(String email) {
         RestClient restClient = RestClient.builder()
-                .baseUrl("http://localhost:56876").build();
+                .baseUrl("http://localhost:8080").build();
 
         try {
             restClient.post()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/")
-                            .queryParam("loadTestExecutionResultId", loadTestExecutionResultId)
+                            .path("/emails/verification-requests")
+                            .queryParam("email", email)
                             .build())
                     .retrieve()
                     .toBodilessEntity();
+
         } catch (RestClientResponseException e) {
             log.error("Error occurred : {}", e);
         }

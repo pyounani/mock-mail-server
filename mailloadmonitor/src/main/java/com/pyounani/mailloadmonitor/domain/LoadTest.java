@@ -16,7 +16,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoadTestSession {
+public class LoadTest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +28,6 @@ public class LoadTestSession {
 
     private LocalDateTime startTime; // 테스트가 시작된 시간
 
-    @OneToMany(mappedBy = "loadTestSession")
-    private List<LoadTestExecutionResult> loadTestExecutionResults; // 테스트 세션에서 발생한 여러 실행 결과들의 목록
+    @OneToMany(mappedBy = "loadTest")
+    private List<LoadTestResult> loadTestResults; // 테스트 세션에서 발생한 여러 실행 결과들의 목록
 }

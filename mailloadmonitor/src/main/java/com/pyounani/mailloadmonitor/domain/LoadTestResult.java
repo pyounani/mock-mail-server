@@ -14,18 +14,22 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoadTestExecutionResult {
+public class LoadTestResult {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    private LoadTestSession loadTestSession; // 실행결과가 속한 부하 테스트 세션
+    private LoadTest loadTest; // 실행결과가 속한 부하 테스트 세션
 
     private Integer loopIdx; // 실행 반복 횟수
 
     private LocalDateTime requestTime; // 요청이 시작된 시간
 
     private LocalDateTime finishTime; // 요청이 끝난 시간
+
+    public Long getId() {
+        return id;
+    }
 }
