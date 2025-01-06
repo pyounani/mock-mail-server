@@ -18,10 +18,10 @@ public class UserService {
     /**
      * 인증 코드 검증을 위한 이메일 전송
      */
-    public void sendCodeToEmail(String toEmail) {
+    public void sendCodeToEmail(String toEmail, Long loadTestResultId) {
         String title = "StoryTeller 이메일 인증 번호";
         String authCode = this.createCode();
-        mailService.sendEmail(toEmail, title, authCode);
+        mailService.sendEmail(toEmail, title, authCode, loadTestResultId);
     }
 
 

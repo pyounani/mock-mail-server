@@ -19,9 +19,10 @@ public class UserController {
      * 이메일 인증 코드 요청하기
      */
     @PostMapping("/emails/verification-requests")
-    public ResponseEntity<ResponseDTO> sendEmailVerification(@RequestParam String email) {
+    public ResponseEntity<ResponseDTO> sendEmailVerification(@RequestParam String email,
+                                                             @RequestParam Long loadTestResultId) {
 
-        userService.sendCodeToEmail(email);
+        userService.sendCodeToEmail(email, loadTestResultId);
         return ResponseEntity
                 .status(ResponseCode.SUCCESS_VERIFICATION_REQUEST.getStatus().value())
                 .body(new ResponseDTO<>(ResponseCode.SUCCESS_VERIFICATION_REQUEST, null));

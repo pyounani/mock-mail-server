@@ -68,7 +68,7 @@ public class LoadTestController {
                 );
 
                 // 인증코드 요청 API
-                requestVerificationCode(loadTestResult.getId().toString() + "@example.com");
+                requestVerificationCode(loadTestResult.getId().toString() + "@example.com", loadTestResult.getId());
 
             }, taskExecutor);
 
@@ -78,7 +78,7 @@ public class LoadTestController {
         return CompletableFuture.allOf(asyncTasks.toArray(new CompletableFuture[0]));
     }
 
-    private void requestVerificationCode(String email) {
+    private void requestVerificationCode(String email, Long loadTestResultId) {
         RestClient restClient = RestClient.builder()
                 .baseUrl("http://localhost:8080").build();
 
@@ -87,6 +87,7 @@ public class LoadTestController {
                     .uri(uriBuilder -> uriBuilder
                             .path("/emails/verification-requests")
                             .queryParam("email", email)
+                            .queryParam("loadTestResultId", loadTestResultId)
                             .build())
                     .retrieve()
                     .toBodilessEntity();
