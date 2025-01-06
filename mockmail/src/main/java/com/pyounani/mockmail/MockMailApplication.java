@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MockmailApplication {
+public class MockMailApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MockmailApplication.class, args);
+		SpringApplication.run(MockMailApplication.class, args);
 	}
 
 }
