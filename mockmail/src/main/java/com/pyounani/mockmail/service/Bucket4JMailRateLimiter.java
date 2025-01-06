@@ -9,12 +9,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class Bucket4JMailRateLimiter implements MailRateLimiter {
 
-    private static final int LIMIT_COUNT = 10;
+    private static final int LIMIT_COUNT = 5;
     private ConcurrentHashMap<String, Bucket> bucketMap = new ConcurrentHashMap<>();
 
     @Override
-    public boolean isAllowed(String account) {
-        Bucket bucket = bucketMap.computeIfAbsent(account, newBucket -> createNewBucket());
+    public boolean isAllowed(String email) {
+        Bucket bucket = bucketMap.computeIfAbsent(email, newBucket -> createNewBucket());
         return bucket.tryConsume(1);
     }
 

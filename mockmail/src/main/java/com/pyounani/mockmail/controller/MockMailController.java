@@ -17,16 +17,16 @@ public class MockMailController {
     private final MailRateLimiter mailRateLimiter;
 
     @PostMapping("/mock/emails/verification-requests")
-    public ResponseEntity<Void> sendMail(@RequestParam String account) {
-        log.info("메일 발송 요청 수신: account={}", account);
+    public ResponseEntity<Void> sendMail(@RequestParam String email) {
+        log.info("메일 발송 요청 수신: email={}", email);
 
-        if(!mailRateLimiter.isAllowed(account)) {
-            log.warn("메일 발송 제한 초과: account={}", account);
+        if(!mailRateLimiter.isAllowed(email)) {
+            log.warn("메일 발송 제한 초과: email={}", email);
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
         }
         sleep(4000L); // 실제 GMAIL SMTP를 사용했을 때 걸리는 요청 처리 시간
 
-        log.info("메일 발송 완료: account={}", account);
+        log.info("메일 발송 완료: email={}", email);
         return ResponseEntity.ok().build();
     }
 
