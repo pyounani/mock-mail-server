@@ -16,7 +16,7 @@ public class MockMailController {
 
     private final MailRateLimiter mailRateLimiter;
 
-    @PostMapping("/mock/emails/verification-requests")
+    @PostMapping("/send-email")
     public ResponseEntity<Void> sendMail(@RequestParam String email) {
         log.info("메일 발송 요청 수신: email={}", email);
 
