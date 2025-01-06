@@ -1,6 +1,8 @@
 package com.pyounani.mailloadmonitor.domain;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -11,7 +13,9 @@ import java.util.List;
  * 하나의 테스트 세션은 부하 테스트를 실행하기 위한 설정과 메타데이터를 저장
  */
 @Entity
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class LoadTestSession {
 
     @Id

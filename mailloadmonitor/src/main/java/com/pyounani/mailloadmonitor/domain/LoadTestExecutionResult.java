@@ -1,6 +1,8 @@
 package com.pyounani.mailloadmonitor.domain;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -9,7 +11,9 @@ import java.time.LocalDateTime;
  * 각각의 부하 테스트들에 대한 실행 결과
  */
 @Entity
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class LoadTestExecutionResult {
 
     @Id
