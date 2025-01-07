@@ -3,6 +3,7 @@ package com.pyounani.mailrequestor.loadTest.domain;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
  * 각각의 부하 테스트들에 대한 실행 결과
  */
 @Entity
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,8 +30,4 @@ public class LoadTestResult {
     private LocalDateTime requestTime; // 요청이 시작된 시간
 
     private LocalDateTime finishTime; // 요청이 끝난 시간
-
-    public Long getId() {
-        return id;
-    }
 }

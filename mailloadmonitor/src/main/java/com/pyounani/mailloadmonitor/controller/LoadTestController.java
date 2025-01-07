@@ -2,21 +2,28 @@ package com.pyounani.mailloadmonitor.controller;
 
 import com.pyounani.mailloadmonitor.domain.LoadTestResult;
 import com.pyounani.mailloadmonitor.domain.LoadTest;
+import com.pyounani.mailloadmonitor.dto.LoadTestResultSummaryDto;
+import com.pyounani.mailloadmonitor.dto.ProcessTimeDto;
+import com.pyounani.mailloadmonitor.dto.TpsDto;
 import com.pyounani.mailloadmonitor.repository.LoadTestResultRepository;
 import com.pyounani.mailloadmonitor.repository.LoadTestRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,7 +49,7 @@ public class LoadTestController {
 
         // 부하 테스트 세션에 대한 정보 저장
         LoadTest loadTest = loadTestRepository.save(LoadTest.builder()
-                .testParams(String.format("vUsers=%d, interval=%d, loop=%d", vUsers, interval, loop))
+                .testParams(String.format("vUsers=%d/interval=%d/loop=%d", vUsers, interval, loop))
                 .startTime(LocalDateTime.now())
                 .description(description)
                 .build());
@@ -52,6 +59,74 @@ public class LoadTestController {
             generateVUsersLoadAsync(vUsers, loadTest, loopIdx);
             sleep(interval);
         }
+    }
+
+    /**
+     * 테스트 결과로 시간대별로 TPS로 집계합니다.
+     * @param id
+     * @return
+     */
+    @GetMapping("/load-tests/{id}/tps")
+    public List<TpsDto> getLoadTestTps(@PathVariable Long id) {
+        LoadTest loadTest = getLoadTest(id);
+        List<LoadTestResult> results = loadTestResultRepository.findByLoadTestOrderByRequestTime(loadTest);
+
+        Map<Long, Double> tps = new TreeMap<>();
+        for (LoadTestResult result : results) {
+            if (result.getFinishTime() == null) {
+                continue;
+            }
+            long elapsedTime = Duration.between(results.get(0).getRequestTime(), result.getRequestTime())
+                    .getSeconds();
+            long processingTime = Duration.between(result.getRequestTime(), result.getFinishTime())
+                    .toMillis();
+
+            // TPS 계산
+            tps.merge(elapsedTime, 1.0 / processingTime, Double::sum);
+        }
+        return tps.entrySet().stream()
+                .map(entry -> new TpsDto(entry.getKey(), entry.getValue() * 1000))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 테스트 결과로 요청순서별 처리시간을 집계합니다.
+     * @param id
+     * @return
+     */
+    @GetMapping("/load-tests/{id}/process-time")
+    public List<ProcessTimeDto> getLoadTestProcessTime(@PathVariable Long id) {
+        LoadTest loadTest = getLoadTest(id);
+        List<LoadTestResult> results = loadTestResultRepository.findByLoadTestOrderByRequestTime(loadTest);
+        AtomicLong index = new AtomicLong(0);
+        return results.stream().map(result -> ProcessTimeDto.from(result, index.getAndIncrement()))
+                .collect(Collectors.toList());
+    }
+
+    private LoadTest getLoadTest(Long id) {
+        return loadTestRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("결과가 없습니다."));
+    }
+
+    /**
+     * 부하테스트 결과 삭제
+     * @param id
+     */
+    @Transactional
+    @DeleteMapping("/load-tests/{id}")
+    public void deleteLoadTest(@PathVariable Long id) {
+        loadTestResultRepository.deleteByLoadTest_Id(id);
+        loadTestRepository.deleteById(id);
+    }
+
+
+    List<LoadTestResultSummaryDto> summaryResult(LoadTest loadTest) {
+        Map<Integer, List<LoadTestResult>> groupedByLoopIdx = loadTest.getLoadTestResults().stream()
+                .collect(Collectors.groupingBy(LoadTestResult::getLoopIdx));
+
+        return groupedByLoopIdx.entrySet().stream()
+                .map(entry -> LoadTestResultSummaryDto.from(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
     }
 
     private CompletableFuture<Void> generateVUsersLoadAsync(int vUsers, LoadTest loadTest, int loopIdx) {

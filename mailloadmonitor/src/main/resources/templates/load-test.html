@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>성능테스트</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/load-test.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h1 class="my-4 text-center">Load Test List</h1>
+    <!-- 성능테스트 테이블 -->
+    <table class="table table-striped table-bordered">
+        <thead class="thead-dark">
+        <tr>
+            <th>ID</th>
+            <th>Description</th>
+            <th>Test Params</th>
+            <th>Start Time</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="loadTest : ${loadTestList}" th:data-id="${loadTest.id}" onclick="loadTest.getLoadTestSummary(this)">
+            <td th:text="${loadTest.id}"></td>
+            <td th:text="${loadTest.description}"></td>
+            <td th:text="${loadTest.testParams}"></td>
+            <td th:text="${loadTest.startTime}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="row">
+        <!-- TPS 테이블 -->
+        <div class="chart-container col-md-6">
+            <div class="chart-title">TPS 그래프</div>
+            <div class="chart-content">
+                <canvas id="tpsChart"></canvas>
+            </div>
+        </div>
+        <!-- 처리시간 테이블 -->
+        <div class="chart-container col-md-6">
+            <div class="chart-title">처리시간 그래프</div>
+            <div class="chart-content">
+                <canvas id="processingTimeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/load-test.js"></script>
+</body>
+</html>
